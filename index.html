@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Hub Interaktif - Tingkatan 1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap');
+        
+        body { 
+            font-family: 'Rajdhani', sans-serif; 
+            background: #0f172a;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        .orbitron { font-family: 'Orbitron', sans-serif; }
+        
+        .bg-space {
+            background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+        }
+
+        .card-topic {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .card-topic:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+        }
+
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .correct-bg { animation: correct-flash 0.5s ease-out; }
+        @keyframes correct-flash {
+            0% { background: transparent; }
+            50% { background: rgba(34, 197, 94, 0.2); }
+            100% { background: transparent; }
+        }
+    </style>
+</head>
+<body class="bg-space min-h-screen">
+
+    <!-- Audio Manager (Hidden) -->
+    <div id="audio-status" class="fixed top-4 right-4 text-[10px] uppercase tracking-widest text-slate-500 z-50">
+        Audio Ready 🔊
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app" class="max-w-5xl mx-auto p-4 md:p-8">
+        
+        <!-- Header -->
+        <header class="text-center mb-12 pt-8">
+            <h1 class="orbitron text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 mb-2">
+                MATH HUB T1
+            </h1>
+            <p class="text-slate-400 tracking-[0.2em] font-bold uppercase text-sm">Eksplorasi Bab 1 — Bab 3</p>
+        </header>
+
+        <!-- Menu Utama (Topic Selection) -->
+        <div id="main-menu" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- Bab 1 Card -->
+            <div onclick="openTopic(1)" class="card-topic bg-slate-800/50 p-8 rounded-3xl border border-blue-500/30 text-center">
+                <div class="text-5xl mb-4 floating">🔢</div>
+                <h2 class="orbitron text-xl font-bold mb-2">Bab 1</h2>
+                <p class="text-blue-400 font-bold mb-4">Nombor Nisbah</p>
+                <button class="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest">Belajar & Main</button>
+            </div>
+
+            <!-- Bab 2 Card -->
+            <div onclick="openTopic(2)" class="card-topic bg-slate-800/50 p-8 rounded-3xl border border-purple-500/30 text-center">
+                <div class="text-5xl mb-4 floating" style="animation-delay: 0.5s">✖️</div>
+                <h2 class="orbitron text-xl font-bold mb-2">Bab 2</h2>
+                <p class="text-purple-400 font-bold mb-4">Faktor & Gandaan</p>
+                <button class="bg-purple-600 hover:bg-purple-500 px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest">Belajar & Main</button>
+            </div>
+
+            <!-- Bab 3 Card -->
+            <div onclick="openTopic(3)" class="card-topic bg-slate-800/50 p-8 rounded-3xl border border-cyan-500/30 text-center">
+                <div class="text-5xl mb-4 floating" style="animation-delay: 1s">📐</div>
+                <h2 class="orbitron text-xl font-bold mb-2">Bab 3</h2>
+                <p class="text-cyan-400 font-bold mb-4">Kuasa & Punca Kuasa</p>
+                <button class="bg-cyan-600 hover:bg-cyan-500 px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest">Belajar & Main</button>
+            </div>
+        </div>
+
+        <!-- Section Paparan Topik (Hidden by default) -->
+        <div id="topic-view" class="hidden mt-8 space-y-6">
+            <button onclick="goBack()" class="text-slate-400 hover:text-white flex items-center transition-colors">
+                <span class="mr-2">⬅️</span> KEMBALI KE MENU
+            </button>
+
+            <!-- Content Area -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Nota Ringkas (Left Side) -->
+                <div class="lg:col-span-1 bg-slate-900/80 p-6 rounded-3xl border border-slate-700">
+                    <h3 id="nota-title" class="orbitron text-xl font-bold text-blue-400 mb-4 underline decoration-2 underline-offset-8">Nota Kilat</h3>
+                    <ul id="nota-list" class="space-y-4 text-slate-300 text-sm leading-relaxed list-disc ml-4">
+                        <!-- Nota akan dijana di sini -->
+                    </ul>
+                </div>
+
+                <!-- Zon Game (Right Side) -->
+                <div id="game-zone" class="lg:col-span-2 bg-slate-900/80 p-8 rounded-3xl border border-slate-700 relative overflow-hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="orbitron text-xl font-bold">Zon Cabaran</h3>
+                        <div class="bg-slate-800 px-4 py-1 rounded-full text-sm">
+                            Markah: <span id="game-score" class="font-bold text-yellow-400">0</span>
+                        </div>
+                    </div>
+                    
+                    <div id="game-content" class="min-h-[300px] flex flex-col items-center justify-center text-center">
+                        <!-- Permainan akan dijana di sini -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Web Audio API Setup
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(523, audioCtx.currentTime); // C5
+                oscillator.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            } else if (type === 'wrong') {
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(50, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            } else if (type === 'select') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(300, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
+            }
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.4);
+        }
+
+        let currentTopic = 0;
+        let score = 0;
+        let currentAnswer = null;
+
+        const contentData = {
+            1: {
+                title: "Nombor Nisbah",
+                notes: [
+                    "<strong>Integer:</strong> Nombor bulat positif, negatif, dan sifar (..., -2, -1, 0, 1, 2, ...).",
+                    "<strong>Sifar:</strong> Bukan positif dan bukan negatif.",
+                    "<strong>Operasi:</strong> (+) × (+) = (+), (+) × (-) = (-).",
+                    "<strong>Hukum Kalis Tukar Tertib:</strong> a + b = b + a."
+                ],
+                gameDesc: "Pilih nombor yang LEBIH BESAR!"
+            },
+            2: {
+                title: "Faktor & Gandaan",
+                notes: [
+                    "<strong>Faktor:</strong> Nombor yang boleh membahagi nombor lain dengan tepat.",
+                    "<strong>Nombor Perdana:</strong> Hanya boleh dibahagi dengan 1 dan dirinya sendiri.",
+                    "<strong>FSTB:</strong> Faktor Sepunya Terbesar.",
+                    "<strong>GSTK:</strong> Gandaan Sepunya Terkecil."
+                ],
+                gameDesc: "Adakah ini FAKTOR bagi nombor yang diberikan?"
+            },
+            3: {
+                title: "Kuasa Dua & Tiga",
+                notes: [
+                    "<strong>Kuasa Dua:</strong> Nombor didarab dengan diri sendiri (x²).",
+                    "<strong>Punca Kuasa Dua:</strong> Terbalikkan kuasa dua (√).",
+                    "<strong>Kuasa Tiga Sempurna:</strong> Contohnya 1, 8, 27, 64.",
+                    "√64 = 8 kerana 8 × 8 = 64."
+                ],
+                gameDesc: "Cari jawapan Kuasa / Punca Kuasa yang tepat!"
+            }
+        };
+
+        function openTopic(id) {
+            playSound('select');
+            currentTopic = id;
+            score = 0;
+            document.getElementById('game-score').innerText = score;
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('topic-view').classList.remove('hidden');
+            
+            // Set Nota
+            const data = contentData[id];
+            document.getElementById('nota-title').innerText = "Nota Kilat: " + data.title;
+            const list = document.getElementById('nota-list');
+            list.innerHTML = data.notes.map(n => `<li>${n}</li>`).join('');
+            
+            generateGame();
+        }
+
+        function goBack() {
+            playSound('select');
+            document.getElementById('main-menu').classList.remove('hidden');
+            document.getElementById('topic-view').classList.add('hidden');
+        }
+
+        function generateGame() {
+            const container = document.getElementById('game-content');
+            container.innerHTML = '';
+            
+            if (currentTopic === 1) {
+                // Game: Mana lagi besar?
+                let n1 = Math.floor(Math.random() * 40) - 20;
+                let n2 = Math.floor(Math.random() * 40) - 20;
+                while(n1 === n2) n2 = Math.floor(Math.random() * 40) - 20;
+                
+                currentAnswer = Math.max(n1, n2);
+                
+                container.innerHTML = `
+                    <p class="text-slate-400 mb-6 font-bold uppercase tracking-widest">Pilih nilai paling besar:</p>
+                    <div class="flex gap-4">
+                        <button onclick="checkAnswer(${n1})" class="bg-slate-800 border-2 border-blue-500/50 p-8 rounded-2xl text-4xl font-bold hover:bg-blue-600 transition-all">${n1}</button>
+                        <button onclick="checkAnswer(${n2})" class="bg-slate-800 border-2 border-blue-500/50 p-8 rounded-2xl text-4xl font-bold hover:bg-blue-600 transition-all">${n2}</button>
+                    </div>
+                `;
+            } else if (currentTopic === 2) {
+                // Game: Adakah ini faktor?
+                const target = [12, 18, 20, 24, 30][Math.floor(Math.random()*5)];
+                const possible = Math.floor(Math.random() * 10) + 2;
+                currentAnswer = (target % possible === 0) ? "YA" : "TIDAK";
+                
+                container.innerHTML = `
+                    <p class="text-slate-400 mb-2 font-bold uppercase tracking-widest">Adakah</p>
+                    <h4 class="text-6xl font-bold text-purple-400 mb-2">${possible}</h4>
+                    <p class="text-slate-400 mb-6 font-bold uppercase tracking-widest text-xs">Faktor bagi ${target}?</p>
+                    <div class="flex gap-4">
+                        <button onclick="checkAnswer('YA')" class="bg-green-600 px-8 py-3 rounded-xl font-bold text-xl hover:scale-105 transition-all">YA</button>
+                        <button onclick="checkAnswer('TIDAK')" class="bg-red-600 px-8 py-3 rounded-xl font-bold text-xl hover:scale-105 transition-all">TIDAK</button>
+                    </div>
+                `;
+            } else if (currentTopic === 3) {
+                // Game: Punca Kuasa / Kuasa
+                const mode = Math.random() > 0.5 ? 'kuasa' : 'punca';
+                let q, a;
+                if (mode === 'kuasa') {
+                    const n = Math.floor(Math.random() * 12) + 2;
+                    q = `${n}²`;
+                    a = n * n;
+                } else {
+                    const n = Math.floor(Math.random() * 12) + 2;
+                    q = `√${n * n}`;
+                    a = n;
+                }
+                currentAnswer = a;
+                
+                // Generasi Opsyen
+                let opts = [a];
+                while(opts.length < 4) {
+                    let fake = a + (Math.floor(Math.random() * 5) + 1) * (Math.random() > 0.5 ? 1 : -1);
+                    if(fake > 0 && !opts.includes(fake)) opts.push(fake);
+                }
+                opts.sort(() => Math.random() - 0.5);
+
+                container.innerHTML = `
+                    <p class="text-slate-400 mb-4 font-bold uppercase tracking-widest">Selesaikan:</p>
+                    <h4 class="text-6xl font-bold text-cyan-400 mb-8 orbitron">${q}</h4>
+                    <div class="grid grid-cols-2 gap-3 w-full max-w-xs">
+                        ${opts.map(o => `<button onclick="checkAnswer(${o})" class="bg-slate-800 border border-slate-700 py-3 rounded-lg font-bold hover:bg-cyan-600 transition-all">${o}</button>`).join('')}
+                    </div>
+                `;
+            }
+        }
+
+        function checkAnswer(val) {
+            const zone = document.getElementById('game-zone');
+            if (val === currentAnswer) {
+                playSound('correct');
+                score += 10;
+                document.getElementById('game-score').innerText = score;
+                zone.classList.add('correct-bg');
+                setTimeout(() => zone.classList.remove('correct-bg'), 500);
+                generateGame();
+            } else {
+                playSound('wrong');
+                // Effect gegar
+                zone.style.animation = 'none';
+                zone.offsetHeight;
+                zone.style.animation = 'shake 0.4s';
+            }
+        }
+    </script>
+
+    <style>
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+    </style>
+</body>
+</html>
